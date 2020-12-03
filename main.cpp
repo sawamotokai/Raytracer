@@ -5,12 +5,21 @@
 #define rep(i, n) for (int i = 0; i < n; i++)
 using namespace std;
 
-color lerp(ray r, color c1, color c2) {
+bool hit_sphere(point3 center, double radius, ray r) {
+  double a = dot(r.direction(), r.direction());
+  double b = 2.0 * dot(r.direction(), r.origin() - center);
+  double c = dot(r.origin() - center, r.origin() - center) - radius * radius;
+  double d = b * b - 4 * a * c;
+  return d >= 0;
+}
+
+color getColor(ray r) {
+  if (hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, r))
+    return color(1.0, 0.0, 0.0);
+  color c1(1.0, 1.0, 1.0);
+  color c2(0.5, 0.7, 1.0);
   vec3 normal = unit_vector(r.direction());
   double t = (double)(normal.y() + 1) / 2.0;
-  // cout << r.direction() << endl;
-  // cout << normal << endl;
-  // cout << t << endl << endl;
   return (1 - t) * c1 + t * c2;
 }
 
@@ -25,14 +34,12 @@ int main() {
 
   //   rep(i, ny) {
   //     rep(j, nx) {
-  for (int i = ny - 1; i >= 0; i--) {
-    for (int j = 0; j < nx; j++) {
+  rep(i, ny) {
+    rep(j, nx) {
       double u = double(j) / double(nx);
       double v = double(i) / double(ny);
       ray r(origin, upper_left + u * hori - v * vert);
-      color c1(1.0, 1.0, 1.0);
-      color c2(0.5, 0.7, 1.0);
-      color col = lerp(r, c1, c2);
+      color col = getColor(r);
       color icol;
       rep(i, 3) icol[i] = int(255.99 * col[i]);
       cout << icol << endl;
