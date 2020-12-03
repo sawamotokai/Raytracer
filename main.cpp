@@ -1,4 +1,5 @@
 #include "models/camera.h"
+#include "models/dielectric.h"
 #include "models/hitable.h"
 #include "models/hitable_list.h"
 #include "models/lambertian.h"
@@ -34,7 +35,7 @@ color getColor(const ray &r, hitable *world, int depth = 0) {
 int main() {
   int nx = 200;
   int ny = 100;
-  int ns = 10;
+  int ns = 100;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   camera cam;
 
@@ -44,9 +45,9 @@ int main() {
   list.push_back(new sphere(vec3(0.0, -100.5, -1.0), 100.0,
                             new lambertian(vec3(0.8, 0.8, 0.0))));
   list.push_back(
-      new sphere(vec3(1, 0, -1), 0.5, new metal(vec3(0.8, 0.6, 0.2))));
-  list.push_back(
-      new sphere(vec3(-1, 0, -1), 0.5, new metal(vec3(0.8, 0.8, 0.8))));
+      new sphere(vec3(1, 0, -1), 0.5, new metal(vec3(0.8, 0.6, 0.2), 0.3)));
+  list.push_back(new sphere(vec3(-1, 0, -1), 0.5, new dielectric(1.5)));
+  list.push_back(new sphere(vec3(-1, 0, -1), -0.45, new dielectric(1.5)));
   hitable *world = new hitable_list(list, list.size());
 
   rep(i, ny) {

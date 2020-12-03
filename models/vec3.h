@@ -168,6 +168,25 @@ inline vec3 reflect(const vec3 &v, const vec3 &n) {
   return v - 2 * dot(v, n) * n;
 }
 
+inline double schlick(double cosine, double ref_idx) {
+  double r0 = (1 - ref_idx) / (1 + ref_idx);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow(1 - cosine, 5);
+};
+
+inline bool refract(const vec3 &v, const vec3 &n, double ni_over_nt,
+                    vec3 &refracted) {
+  vec3 uv = unit_vector(v);
+  double cosT1 = dot(uv, n);
+  double sinT1_sq = 1 - cosT1 * cosT1;
+  double cosT2_sq = 1 - ni_over_nt * ni_over_nt * sinT1_sq;
+  if (cosT2_sq > 0) {
+    refracted = ni_over_nt * (uv - n * cosT1) - n * sqrt(cosT2_sq);
+    return true;
+  }
+  return false;
+}
+
 inline vec3 refract(const vec3 &uv, const vec3 &n, double etai_over_etat) {
   auto cos_theta = fmin(dot(-uv, n), 1.0);
   vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
