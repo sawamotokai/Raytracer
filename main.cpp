@@ -7,6 +7,7 @@
 #include "vec3.h"
 #include <bits/stdc++.h>
 #include <cassert>
+#include <cstdlib>
 
 #define rep(i, n) for (int i = 0; i < n; i++)
 using namespace std;
@@ -26,6 +27,7 @@ color getColor(ray r, hitable *world) {
 int main() {
   int nx = 200;
   int ny = 100;
+  int ns = 100;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   camera cam;
 
@@ -36,15 +38,18 @@ int main() {
 
   rep(i, ny) {
     rep(j, nx) {
-      double u = double(j) / double(nx);
-      double v = double(i) / double(ny);
-      ray r = cam.get_ray(u, v);
-      color col = getColor(r, world);
+      color col;
+      rep(_, ns) {
+        double u = double(j + drand48()) / double(nx);
+        double v = double(i + drand48()) / double(ny);
+        ray r = cam.get_ray(u, v);
+        col += getColor(r, world);
+      }
+      col /= (double)ns;
       color icol;
       rep(i, 3) icol[i] = int(255.99 * col[i]);
       cout << icol << endl;
     }
   }
-
   return 0;
 }
