@@ -1,22 +1,28 @@
-#include "hitable.h"
-#include "hitable_list.h"
-#include "ray.h"
-
-#include "camera.h"
-#include "sphere.h"
-#include "vec3.h"
+#include "models/camera.h"
+#include "models/hitable.h"
+#include "models/hitable_list.h"
+#include "models/lambertian.h"
+#include "models/material.h"
+#include "models/metal.h"
+#include "models/ray.h"
+#include "models/sphere.h"
+#include "models/vec3.h"
 #include <bits/stdc++.h>
 #include <cassert>
 #include <cstdlib>
-
 #define rep(i, n) for (int i = 0; i < n; i++)
 using namespace std;
 
-color getColor(const ray &r, hitable *world) {
+color getColor(const ray &r, hitable *world, int depth = 0) {
   hit_record rec;
-  if (world->hit(r, 0.0001, 1e9, rec)) {
-    vec3 rand_target = rec.p + rec.normal + random_in_unit_sphere();
-    return 0.5 * getColor(ray(rec.p, rand_target - rec.p), world);
+  if (world->hit(r, 0.01, 1e9, rec)) {
+    ray scattered;
+    vec3 attenuation;
+    if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+      return attenuation * getColor(scattered, world, depth + 1);
+    } else {
+      return color(0.0, 0.0, 0.0);
+    }
   }
   color c1(1.0, 1.0, 1.0);
   color c2(0.5, 0.7, 1.0);
@@ -33,9 +39,15 @@ int main() {
   camera cam;
 
   vector<hitable *> list;
-  list.push_back(new sphere(vec3(0.0, 0.0, -1.0), 0.5));
-  list.push_back(new sphere(vec3(0.0, -100.5, -1.0), 100.0));
-  hitable *world = new hitable_list(list, 2);
+  list.push_back(new sphere(vec3(0.0, 0.0, -1.0), 0.5,
+                            new lambertian(vec3(0.8, 0.3, 0.3))));
+  list.push_back(new sphere(vec3(0.0, -100.5, -1.0), 100.0,
+                            new lambertian(vec3(0.8, 0.8, 0.0))));
+  list.push_back(
+      new sphere(vec3(1, 0, -1), 0.5, new metal(vec3(0.8, 0.6, 0.2))));
+  list.push_back(
+      new sphere(vec3(-1, 0, -1), 0.5, new metal(vec3(0.8, 0.8, 0.8))));
+  hitable *world = new hitable_list(list, list.size());
 
   rep(i, ny) {
     rep(j, nx) {
@@ -48,7 +60,7 @@ int main() {
       }
       col /= (double)ns;
       color icol;
-      rep(i, 3) icol[i] = int(255.99 * col[i]);
+      rep(i, 3) icol[i] = int(255.99 * sqrt(col[i]));
       cout << icol << endl;
     }
   }
