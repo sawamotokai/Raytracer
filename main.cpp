@@ -1,21 +1,21 @@
+#include "hitable.h"
+#include "hitable_list.h"
 #include "ray.h"
+
+#include "camera.h"
+#include "sphere.h"
+#include "vec3.h"
 #include <bits/stdc++.h>
 #include <cassert>
 
 #define rep(i, n) for (int i = 0; i < n; i++)
 using namespace std;
 
-bool hit_sphere(point3 center, double radius, ray r) {
-  double a = dot(r.direction(), r.direction());
-  double b = 2.0 * dot(r.direction(), r.origin() - center);
-  double c = dot(r.origin() - center, r.origin() - center) - radius * radius;
-  double d = b * b - 4 * a * c;
-  return d >= 0;
-}
-
-color getColor(ray r) {
-  if (hit_sphere(vec3(0.0, 0.0, -1.0), 0.5, r))
-    return color(1.0, 0.0, 0.0);
+color getColor(ray r, hitable *world) {
+  hit_record rec;
+  if (world->hit(r, 0.0, 1e9, rec)) {
+    return 0.5 * (rec.normal + 1);
+  }
   color c1(1.0, 1.0, 1.0);
   color c2(0.5, 0.7, 1.0);
   vec3 normal = unit_vector(r.direction());
@@ -27,19 +27,19 @@ int main() {
   int nx = 200;
   int ny = 100;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
-  point3 upper_left(-2.0, 1.0, -1.0);
-  point3 origin(0.0, 0.0, 0.0);
-  vec3 vert(0.0, 2.0, 0.0);
-  vec3 hori(4.0, 0.0, 0.0);
+  camera cam;
 
-  //   rep(i, ny) {
-  //     rep(j, nx) {
+  vector<hitable *> list;
+  list.push_back(new sphere(vec3(0.0, 0.0, -1.0), 0.5));
+  list.push_back(new sphere(vec3(0.0, -100.5, -1.0), 100.0));
+  hitable *world = new hitable_list(list, 2);
+
   rep(i, ny) {
     rep(j, nx) {
       double u = double(j) / double(nx);
       double v = double(i) / double(ny);
-      ray r(origin, upper_left + u * hori - v * vert);
-      color col = getColor(r);
+      ray r = cam.get_ray(u, v);
+      color col = getColor(r, world);
       color icol;
       rep(i, 3) icol[i] = int(255.99 * col[i]);
       cout << icol << endl;
