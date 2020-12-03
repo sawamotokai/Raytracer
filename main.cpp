@@ -12,10 +12,11 @@
 #define rep(i, n) for (int i = 0; i < n; i++)
 using namespace std;
 
-color getColor(ray r, hitable *world) {
+color getColor(const ray &r, hitable *world) {
   hit_record rec;
-  if (world->hit(r, 0.0, 1e9, rec)) {
-    return 0.5 * (rec.normal + 1);
+  if (world->hit(r, 0.0001, 1e9, rec)) {
+    vec3 rand_target = rec.p + rec.normal + random_in_unit_sphere();
+    return 0.5 * getColor(ray(rec.p, rand_target - rec.p), world);
   }
   color c1(1.0, 1.0, 1.0);
   color c2(0.5, 0.7, 1.0);
@@ -27,7 +28,7 @@ color getColor(ray r, hitable *world) {
 int main() {
   int nx = 200;
   int ny = 100;
-  int ns = 100;
+  int ns = 10;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   camera cam;
 
