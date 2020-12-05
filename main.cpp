@@ -3,10 +3,12 @@
 #include "models/hitable.h"
 #include "models/hitable_list.h"
 #include "models/lambertian.h"
+#include "models/light_source.h"
 #include "models/material.h"
 #include "models/metal.h"
 #include "models/ray.h"
 #include "models/sphere.h"
+#include "models/spot_light.h"
 #include "models/vec3.h"
 #include <bits/stdc++.h>
 #include <cassert>
@@ -47,7 +49,12 @@ hitable *random_scene() {
       new sphere(point3(-4, 1, 0), 1.0, new lambertian(color(0.4, 0.2, 0.1))));
   list.push_back(
       new sphere(point3(4, 1, 0), 1.0, new metal(color(0.7, 0.6, 0.5), 0.0)));
-  return new hitable_list(list, list.size());
+  vector<light_source *> lights;
+  lights.push_back(
+      new spot_light(point3(2.0, 10.0, -1.0), color(1.0, 1.0, 1.0), 2.0));
+  lights.push_back(
+      new spot_light(point3(-2.0, 10.0, 1.0), color(1.0, 1.0, 1.0), 2.0));
+  return new hitable_list(list, list.size(), lights);
 }
 
 color getColor(const ray &r, hitable *world, int depth = 0) {
@@ -55,8 +62,16 @@ color getColor(const ray &r, hitable *world, int depth = 0) {
   if (world->hit(r, 0.001, 1e9, rec)) {
     ray scattered;
     vec3 attenuation;
+    hitable_list *_world = (hitable_list *)world;
     if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-      return attenuation * getColor(scattered, world, depth + 1);
+      color ambient = attenuation;
+      point3 hit_point = r.at(rec.t);
+      double light_sum = _world->get_total_light(hit_point);
+      assert(light_sum <= _world->light_sum);
+      if (_world->lights.size()) {
+        ambient *= light_sum / _world->light_sum;
+      }
+      return ambient * getColor(scattered, world, depth + 1);
     } else {
       return color(0.0, 0.0, 0.0);
     }
@@ -69,9 +84,9 @@ color getColor(const ray &r, hitable *world, int depth = 0) {
 }
 
 int main() {
-  int nx = 200;
-  int ny = 100;
-  int ns = 100;
+  int nx = 300;
+  int ny = 200;
+  int ns = 30;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   vec3 lookfrom(13.0, 2.0, 3.0);
   vec3 lookat(0.0, 0.0, 0.0);
@@ -81,16 +96,6 @@ int main() {
   camera cam(lookfrom, lookat, up_vector, 20, double(nx) / double(ny), aparture,
              focal_length);
 
-  // vector<hitable *> list;
-  // list.push_back(new sphere(vec3(0.0, 0.0, -1.0), 0.5,
-  //                           new lambertian(vec3(0.8, 0.3, 0.3))));
-  // list.push_back(new sphere(vec3(0.0, -100.5, -1.0), 100.0,
-  //                           new lambertian(vec3(0.8, 0.8, 0.0))));
-  // list.push_back(
-  //     new sphere(vec3(1, 0, -1), 0.5, new metal(vec3(0.8, 0.6, 0.2), 0.3)));
-  // list.push_back(new sphere(vec3(-1, 0, -1), 0.5, new dielectric(1.5)));
-  // list.push_back(new sphere(vec3(-1, 0, -1), -0.45, new dielectric(1.5)));
-  // hitable *world = new hitable_list(list, list.size());
   hitable *world = random_scene();
   rep(i, ny) {
     rep(j, nx) {
