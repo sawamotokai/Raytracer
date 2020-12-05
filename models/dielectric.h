@@ -6,6 +6,7 @@
 #include "ray.h"
 #include "vec3.h"
 #include <cstdlib>
+#include <vector>
 
 class dielectric : public material {
 public:

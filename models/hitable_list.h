@@ -21,7 +21,7 @@ public:
     double sum = 0.0;
     for (light_source *light : lights) {
       hit_record light_rec;
-      ray light_ray = light->get_ray(hit_point);
+      ray light_ray = light->get_ray(hit_point, light_rec);
       if (hit(light_ray, 0.001, 1e9, light_rec)) {
         // compare t and dist to the light
         double dist_light = light->get_dist(hit_point);

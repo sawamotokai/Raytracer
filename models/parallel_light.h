@@ -7,14 +7,16 @@
 
 class parallel_light : public light_source {
 public:
-  parallel_light(vec3 dir, color col, double intensity) : dir(dir), col(col) {
+  parallel_light(vec3 dir, color col, double intensity) : dir(dir) {
     this->intensity = intensity;
+    this->col = col;
   };
-  virtual ray get_ray(const point3 &hit_point) const {
-    return ray(hit_point, dir);
+  virtual ray get_ray(const point3 &hit_point, const hit_record &rec) const {
+    if (dot(dir, rec.normal) > 0)
+      return ray(hit_point, dir);
+    return ray(hit_point, -dir);
   };
   virtual double get_dist(const point3 &p) const { return 1e10; }
-  color col;
   vec3 dir;
 };
 

@@ -2,6 +2,7 @@
 #define LAMBERTIANH
 
 #include "material.h"
+#include <vector>
 
 class lambertian : public material {
 public:
