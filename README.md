@@ -3,7 +3,7 @@ Implemented a basic raytracer without libraries and framework.
 
 ![random scene](img/random_scene.png)
 
-#### Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</a>
+### Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</a>
 * Spheres
 * Materials including
   - Metal
@@ -13,7 +13,7 @@ Implemented a basic raytracer without libraries and framework.
 * Reflection
 * Depth of field
 
-## On top of those, I implemented the following features:
+### I implemented the following features:
 * Box, Triangle, Rectangle
 * Soft shadow
 * Light sources 
