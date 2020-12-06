@@ -53,8 +53,8 @@ hitable *random_scene() {
       new sphere(point3(4, 1, 0), 1.0, new metal(color(0.7, 0.6, 0.5), 0.0)));
 
   vector<light_source *> lights;
-  list.push_back(new box(point3(5, 2, 2.0),
-                         vec3(drand48(), drand48(), drand48()), 1.5, 1.5, 1.5,
+  list.push_back(new box(point3(4, 2, 1.5),
+                         vec3(drand48(), drand48(), drand48()), 1.2, 1.2, 1.2,
                          new dielectric(1.5)));
   lights.push_back(new parallel_light(vec3(0, -0.5, -1), color(1, 1, 1), 2.0));
   lights.push_back(
@@ -149,17 +149,26 @@ hitable *cube_space() {
   vector<light_source *> lights;
   list.push_back(new sphere(point3(0, -1000, 0), 1000,
                             new lambertian(color(0.5, 0.5, 0.5))));
-  list.push_back(new box(point3(2, 2, 0), vec3(1, 1, 2), 1.5, 1.5, 1.5,
+  list.push_back(new box(point3(4, 1, 0.0),
+                         vec3(drand48(), drand48(), drand48()), 1.2, 1.2, 1.2,
                          new dielectric(1.5)));
   lights.push_back(new parallel_light(vec3(0, -0.5, -1), color(1, 1, 1), 2.0));
   lights.push_back(
       new point_light(point3(3.0, 100.0, -25.0), color(1.0, 1.0, 1.0), 2.0));
+  lights.push_back(
+      new point_light(point3(-2.0, 10.0, 1.0), color(1.0, 1.0, 1.0), 2.0));
+  lights.push_back(
+      new point_light(point3(2.0, 21.0, 8.0), color(1.0, 1.0, 1.0), 2.0));
+  lights.push_back(
+      new point_light(point3(-2.0, 10.0, -9.0), color(1.0, 1.0, 1.0), 2.0));
+  lights.push_back(
+      new parallel_light(vec3(10.0, 5.0, 0.0), color(1.0, 1.0, 1.0), 2.0));
   return new hitable_list(list, list.size(), lights);
 }
 
 int main() {
-  int nx = 600;
-  int ny = 400;
+  int nx = 400;
+  int ny = 300;
   int ns = 50;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   vec3 lookfrom(13.0, 2.0, 3.0);
@@ -170,7 +179,7 @@ int main() {
   camera cam(lookfrom, lookat, up_vector, 25, double(nx) / double(ny), aparture,
              focal_length);
   // hitable *world = random_scene();
-  hitable *world = random_scene();
+  hitable *world = cube_space();
   rep(i, ny) {
     rep(j, nx) {
       color col;
