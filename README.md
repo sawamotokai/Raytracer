@@ -3,7 +3,7 @@ Implemented a basic raytracer without libraries and framework.
 
 ![random scene](img/random_scene.png)
 
-Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</book>
+Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</a>
 * Spheres
 * Materials including
   - Metal
