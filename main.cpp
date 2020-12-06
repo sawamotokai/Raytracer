@@ -1,3 +1,4 @@
+#include "models/box.h"
 #include "models/camera.h"
 #include "models/dielectric.h"
 #include "models/hitable.h"
@@ -7,9 +8,10 @@
 #include "models/material.h"
 #include "models/metal.h"
 #include "models/parallel_light.h"
+#include "models/point_light.h"
 #include "models/ray.h"
 #include "models/sphere.h"
-#include "models/spot_light.h"
+#include "models/triangle.h"
 #include "models/vec3.h"
 #include <bits/stdc++.h>
 #include <cassert>
@@ -18,15 +20,14 @@
 using namespace std;
 
 hitable *random_scene() {
-  int n = 500;
   vector<hitable *> list;
   list.push_back(new sphere(point3(0, -1000, 0), 1000,
                             new lambertian(color(0.5, 0.5, 0.5))));
-  int i = 1;
-  for (int a = -3; a < 3; a++) {
-    for (int b = -3; b < 3; b++) {
+  for (int a = -5; a < 5; a++) {
+    for (int b = -5; b < 5; b++) {
       double choose_mat = drand48();
-      point3 center(a + 0.9 * drand48(), 0.2, b + 0.9 * drand48());
+      point3 center(a + 15.0 * (drand48() - 0.5), 0.2,
+                    b + 15.0 * (drand48() - 0.5));
       if ((center - point3(4, 0.2, 0)).length() > 0.9) {
         if (choose_mat < 0.8) { // difuse
           list.push_back(new sphere(
@@ -52,21 +53,25 @@ hitable *random_scene() {
       new sphere(point3(4, 1, 0), 1.0, new metal(color(0.7, 0.6, 0.5), 0.0)));
 
   vector<light_source *> lights;
+  list.push_back(new box(point3(5, 2, 2.0),
+                         vec3(drand48(), drand48(), drand48()), 1.5, 1.5, 1.5,
+                         new dielectric(1.5)));
+  lights.push_back(new parallel_light(vec3(0, -0.5, -1), color(1, 1, 1), 2.0));
   lights.push_back(
-      new spot_light(point3(3.0, 100.0, -25.0), color(1.0, 1.0, 1.0), 2.0));
+      new point_light(point3(3.0, 100.0, -25.0), color(1.0, 1.0, 1.0), 2.0));
   lights.push_back(
-      new spot_light(point3(-2.0, 10.0, 1.0), color(1.0, 1.0, 1.0), 2.0));
+      new point_light(point3(-2.0, 10.0, 1.0), color(1.0, 1.0, 1.0), 2.0));
   lights.push_back(
-      new spot_light(point3(2.0, 21.0, 8.0), color(1.0, 1.0, 1.0), 2.0));
+      new point_light(point3(2.0, 21.0, 8.0), color(1.0, 1.0, 1.0), 2.0));
   lights.push_back(
-      new spot_light(point3(-2.0, 10.0, -9.0), color(1.0, 1.0, 1.0), 2.0));
+      new point_light(point3(-2.0, 10.0, -9.0), color(1.0, 1.0, 1.0), 2.0));
   lights.push_back(
       new parallel_light(vec3(10.0, 5.0, 0.0), color(1.0, 1.0, 1.0), 2.0));
   return new hitable_list(list, list.size(), lights);
 }
 
-inline color blinn_color(const color &ambient, const hit_record &rec,
-                         const ray &r, const hitable_list *world) {
+color blinn_color(const color &ambient, const hit_record &rec, const ray &r,
+                  const hitable_list *world) {
   vector<light_source *> lights = world->lights;
   assert(lights.size());
   color col;
@@ -74,24 +79,28 @@ inline color blinn_color(const color &ambient, const hit_record &rec,
     // TODO: shoot ray towards light and if it's blocked intensity is zero
     point3 hit_point = r.at(rec.t);
     ray light_ray = light->get_ray(hit_point, rec);
-    vec3 light_vec = unit_vector(light->get_ray(hit_point, rec).direction());
+    vec3 light_vec = unit_vector(light_ray.direction());
     vec3 view_vec = -unit_vector(r.direction());
     vec3 half = (view_vec + light_vec) / 2.0;
     vec3 normal = unit_vector(rec.normal);
-    double light_intensity = fmax(0.0, dot(normal, light_vec));
+    double light_intensity;
+    if (rec.mat_ptr->name != "dielectric")
+      light_intensity = fmax(0.0, dot(normal, light_vec));
+    else
+      light_intensity = abs(dot(normal, light_vec));
     hit_record light_rec;
     if (world->hit(light_ray, 0.001, 1e9,
                    light_rec)) { // something in middle of light and hit point
       // compare t and dist to the light
       double dist_light = light->get_dist(hit_point);
       double dist_obj = dist(hit_point, light_ray.at(light_rec.t));
-      if (dist_light > dist_obj) {
+      if (light_rec.mat_ptr->name != "dielectric" && dist_light > dist_obj) {
         // if something is in the middle, drop the
         light_intensity = 0.0;
       }
     }
     double blinn = fmax(0.0, dot(normal, half));
-    double shininess = 6.5;
+    double shininess = 5.0;
     double spec_amount = pow(blinn, shininess);
     color specular = light->col * spec_amount;
     color diffuse = ambient * light->col * light_intensity;
@@ -135,19 +144,32 @@ color getColor(const ray &r, hitable *world, int depth = 0) {
   return (1 - t) * c1 + t * c2;
 }
 
+hitable *cube_space() {
+  vector<hitable *> list;
+  vector<light_source *> lights;
+  list.push_back(new sphere(point3(0, -1000, 0), 1000,
+                            new lambertian(color(0.5, 0.5, 0.5))));
+  list.push_back(new box(point3(2, 2, 0), vec3(1, 1, 2), 1.5, 1.5, 1.5,
+                         new dielectric(1.5)));
+  lights.push_back(new parallel_light(vec3(0, -0.5, -1), color(1, 1, 1), 2.0));
+  lights.push_back(
+      new point_light(point3(3.0, 100.0, -25.0), color(1.0, 1.0, 1.0), 2.0));
+  return new hitable_list(list, list.size(), lights);
+}
+
 int main() {
-  int nx = 300;
-  int ny = 200;
-  int ns = 30;
+  int nx = 600;
+  int ny = 400;
+  int ns = 50;
   cout << "P3" << endl << nx << " " << ny << endl << 255 << endl;
   vec3 lookfrom(13.0, 2.0, 3.0);
   vec3 lookat(0.0, 0.0, 0.0);
   vec3 up_vector(0.0, 1.0, 0.0);
   double focal_length = (lookfrom - lookat).length();
   double aparture = 0.1;
-  camera cam(lookfrom, lookat, up_vector, 20, double(nx) / double(ny), aparture,
+  camera cam(lookfrom, lookat, up_vector, 25, double(nx) / double(ny), aparture,
              focal_length);
-
+  // hitable *world = random_scene();
   hitable *world = random_scene();
   rep(i, ny) {
     rep(j, nx) {
@@ -156,9 +178,7 @@ int main() {
         double u = double(j + drand48()) / double(nx);
         double v = double(i + drand48()) / double(ny);
         ray r = cam.get_ray(u, v);
-        color now = getColor(r, world);
-
-        col += now;
+        col += getColor(r, world);
       }
       col /= (double)ns;
       color icol;
