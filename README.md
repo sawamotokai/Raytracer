@@ -1,7 +1,8 @@
 # raytracer
-Implemented a basic raytracer without libraries and framework.
-
-![random scene](img/random_scene.png=200x)
+Implemented a basic raytracer without libraries and framework with vanila C++.
+<p align="center">
+  <img alt="image sample" src="img/random_scene.png" height="400" />
+</p>
 
 #### Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</a>
 * Sphere
