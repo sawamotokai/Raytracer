@@ -25,3 +25,4 @@ Implemented a basic raytracer without libraries and framework with vanila C++.
 
 #### TODO:
 - add 3d alphabets to diplay my name in the scene
+- application to data visualization
