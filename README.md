@@ -23,3 +23,5 @@ Implemented a basic raytracer without libraries and framework with vanila C++.
 * Gloss (blinn coloring)
 
 
+#### TODO:
+- add 3d alphabets to diplay my name in the scene
