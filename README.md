@@ -2,7 +2,7 @@
 Implemented a basic raytracer without libraries and framework with vanila C++.
 <p align="center">
   <img alt="image sample" src="img/random_scene.png" height="400" />
-  <p>An example image created by this program</p>
+  <p align="center">An example image created by this program</p>
 </p>
 
 #### Some of the features below are attributed this <a alt="reference link" href="https://github.com/RayTracing/raytracing.github.io">book</a>
